@@ -12,7 +12,6 @@ namespace rrortega\sms\core;
 use rrortega\sms\core\Model\Configurable;
 use rrortega\sms\core\Model\Message;
 use rrortega\sms\core\Sender\AbstractSender;
-use rrortega\sms\core\Sender\SmppSender;
 
 class SmsHandler extends Configurable
 {
@@ -35,22 +34,32 @@ class SmsHandler extends Configurable
     $this->setConfiguration($config);
     $_class = $this->getConfig('sender.class');
     $_config = $this->getConfig('sender.conf');
-
-    $this->sender = new $_class();
-    $this->sender->setConfiguration($_config);
+    $sender = new $_class();
+    $sender->setConfiguration($_config);
+    $this->setSender($sender);
   }
 
   /**
-   * @param $from
+   * @param AbstractSender $sender
+   * @return $this
+   */
+  public function setSender(AbstractSender $sender)
+  {
+    $this->sender = $sender;
+    return $this;
+  }
+
+  /**
+   * @param $remitent
    * @param $recipient
    * @param $body
    * @return Message
    */
-  public function sendSms($from, $recipient, $body)
+  public function sendSms($remitent, $recipient, $body)
   {
     $this->sender->send(
       Message::create()
-        ->setFrom($from)
+        ->setRemitent($remitent)
         ->setRecipient($recipient)
         ->setPlainText($body)
     );

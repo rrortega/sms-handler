@@ -49,10 +49,10 @@ class SmppSender extends AbstractSender
 //SmppClient::$sms_registered_delivery_flag = SMPP::REG_DELIVERY_SMSC_BOTH;
 
 
-    if (!empty($message->getFrom()))
+    if (!empty($message->getRemitent()))
       $from = new SmppAddress(
-        $message->getFrom(),
-        is_numeric($message->getFrom())
+        $message->getRemitent(),
+        is_numeric($message->getRemitent())
           ? SMPP::TON_INTERNATIONAL
           : SMPP::TON_ALPHANUMERIC
       );

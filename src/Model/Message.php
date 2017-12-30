@@ -9,7 +9,9 @@
 namespace rrortega\sms\core\Model;
 
 
-class Message
+use JsonSerializable;
+
+class Message implements JsonSerializable
 {
   const SCHEDULE = "SCHEDULE";
   const PROCESING = "PROCESING";
@@ -17,7 +19,7 @@ class Message
   const FAILED = "FAILED";
 
   protected $id;
-  protected $from;
+  protected $remitent;
   protected $recipient;
   protected $plainText;
   protected $status = self::SCHEDULE;
@@ -70,20 +72,22 @@ class Message
   /**
    * @return mixed
    */
-  public function getFrom()
+  public function getRemitent()
   {
-    return $this->from;
+    return $this->remitent;
   }
 
   /**
-   * @param mixed $from
+   * @param mixed $remitent
    * @return Message
    */
-  public function setFrom($from)
+  public function setRemitent($remitent)
   {
-    $this->from = $from;
+    $this->remitent = $remitent;
     return $this;
   }
+
+
 
   /**
    * @return string
@@ -153,5 +157,27 @@ class Message
       throw new \Exception("Invalid encode $encode");
 
     return $this->plainText;
+  }
+
+  /**
+   * Specify data which should be serialized to JSON
+   * @link http://php.net/manual/en/jsonserializable.jsonserialize.php
+   * @return mixed data which can be serialized by <b>json_encode</b>,
+   * which is a value of any type other than a resource.
+   * @since 5.4.0
+   */
+  public function jsonSerialize()
+  {
+    $data = [];
+    $rf = new \ReflectionClass($this);
+    foreach ($rf->getProperties() as $p) {
+      $p->setAccessible(true);
+      $v = $p->getValue($this);
+      $data[$p->getName()] = $v instanceof \DateTime ? $v->format(
+        \DateTime::ATOM
+      ) : $v;
+
+    }
+    return $data;
   }
 }
