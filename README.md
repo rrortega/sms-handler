@@ -28,30 +28,36 @@ To send a SMS you can do:
 
 require_once "vendor/autoload.php";
 
-$handler = new \rrortega\sms\core\SmsHandler([
-  "sender" => [
-  
-    //---SMPP----
-    "class" => \rrortega\sms\core\Sender\SmppSender::class,
-    "conf" => [
-      "host" => "smpp.host.com",
-      "port" => 2875,
-      "user" => "smppuser",
-      "pass" => "smppasss",
-      "timeout" => 10000,
-    ],
-    
-    //---TWILIO----
-    "class" => \rrortega\sms\core\Sender\TwilioSender::class,
-    "conf" => [
-      "sid" => "sid-xxxxxxxxx",
-      "token" => "token-xxxxxxxxxx,
-      "user" => "smppuser",
-      "pass" => "smppasss",
-      "timeout" => 10000,
-    ],
-  ]
-]);
+$configuration=[
+   "smpp"=>[
+      "sender" => [  
+         "class" => \rrortega\sms\core\Sender\SmppSender::class,
+         "conf" => [
+           "host" => "smpp.host.com",
+           "port" => 2875,
+           "user" => "smppuser",
+           "pass" => "smppasss",
+           "timeout" => 10000,
+         ], 
+       ]
+   ],
+   "twilio"=>[
+      "sender" => [  
+        "class" => \rrortega\sms\core\Sender\TwilioSender::class,
+        "conf" => [
+          "sid" => "sid-xxxxxxxxx",
+          "token" => "token-xxxxxxxxxx
+        ],
+      ]
+   ]
+];
+
+
+//using smpp
+$handler = new \rrortega\sms\core\SmsHandler($configuration['smpp']);
+
+//using twilio
+$handler = new \rrortega\sms\core\SmsHandler($configuration['twilio']);
 
 $m = $handler->sendSms("TEST SMPP", 521000000000, "Messaje sent using Smpp Driver");
 $m->getStatus(); //SUCCESS or FAILED
