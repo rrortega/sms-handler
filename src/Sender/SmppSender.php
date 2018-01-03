@@ -2,6 +2,7 @@
 /**
  * Created by PhpStorm.
  * User: rrortega
+ * Profile: https://github.com/rrortega
  * Date: 29/12/17
  * Time: 18:07
  */
@@ -9,45 +10,29 @@
 namespace rrortega\sms\core\Sender;
 
 
-use GsmEncoder;
+use rrortega\sms\core\Encoder\GsmEncoder;
 use rrortega\sms\core\Model\Message;
-use SMPP;
-use SmppAddress;
-use SmppClient;
-use SocketTransport;
+use rrortega\sms\core\Smpp\Address;
+use rrortega\sms\core\Smpp\Client;
+use rrortega\sms\core\Smpp\SMPP;
+use rrortega\sms\core\Transport\SocketTransport;
 
 class SmppSender extends AbstractSender
 {
+
+  /** @var TransportInterface */
+  private $transport;
+  /** @var Client */
+  private $smpp;
+
+
   /**
    * @param Message $message
    * @return Message
    */
   protected function sendSMS(Message $message)
   {
-    $host = $this->getConfig("host");
-    $user = $this->getConfig("user");
-    $pass = $this->getConfig("pass");
-
-    // Construct transport and client
-    $transport = new SocketTransport([
-      $host
-    ], 2775);
-    $transport->setRecvTimeout(10000);
-    $smpp = new SmppClient($transport);
-
-    // Activate binary hex-output of server interaction
-    $smpp->debug = true;
-    $transport->debug = true;
-
-    // Open the connection
-    $transport->open();
-    $smpp->bindTransmitter($user, $pass);
-
-// Optional connection specific overrides
-//SmppClient::$sms_null_terminate_octetstrings = false;
-//SmppClient::$csms_method = SmppClient::CSMS_PAYLOAD;
-//SmppClient::$sms_registered_delivery_flag = SMPP::REG_DELIVERY_SMSC_BOTH;
-
+    $this->openSmppConnection();
 
     if (!empty($message->getRemitent()))
       $from = new SmppAddress(
@@ -57,15 +42,19 @@ class SmppSender extends AbstractSender
           : SMPP::TON_ALPHANUMERIC
       );
     else
-      $from = new SmppAddress("SMPP" . date("mdhis"), SMPP::TON_ALPHANUMERIC);
+      $from = new Address(
+        "SMPP" . date("mdhis"),
+        SMPP::TON_ALPHANUMERIC
+      );
 
-    $to = new SmppAddress($message->getRecipient(), SMPP::TON_INTERNATIONAL, SMPP::NPI_E164);
-
-// Send
-    // Prepare message
+    $to = new Address(
+      intval(preg_replace("/\.|\(|\)|-|\s|\+/", "", $message->getRecipient())),
+      SMPP::TON_INTERNATIONAL,
+      SMPP::NPI_E164
+    );
     $encodedMessage = GsmEncoder::utf8_to_gsm0338($message->getPlainText());
 
-    $id = $smpp->sendSMS($from, $to, $encodedMessage);
+    $id = $this->smpp->sendSMS($from, $to, $encodedMessage);
 
     if (!empty($id))
       $message->setId($id);
@@ -74,9 +63,34 @@ class SmppSender extends AbstractSender
       !empty($id) ? Message::SUCCESS : Message::FAILED
     );
 
-// Close connection
-    $smpp->close();
+    $this->closeSmppConnection();
 
     return $message;
+  }
+
+  private function openSmppConnection()
+  {
+
+    $host = $this->getConfig("host");
+    $user = $this->getConfig("user");
+    $pass = $this->getConfig("pass");
+    $port = $this->getConfig("port");
+    $timeout = $this->getConfig("timeout", 10000);
+    $debug = $this->getConfig("debug", false);
+
+    $this->transport = new SocketTransport([$host], $port);
+    $this->transport->setSendTimeout($timeout);
+    $this->smpp = new Client($this->transport);
+
+    $this->transport->debug = $debug;
+    $this->smpp->debug = $debug;
+    $this->transport->open();
+    $this->smpp->bindTransmitter($user, $pass);
+  }
+
+  private function closeSmppConnection()
+  {
+    $this->smpp->close();
+    $this->transport->close();
   }
 }

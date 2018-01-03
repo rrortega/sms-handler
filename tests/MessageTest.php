@@ -1,13 +1,15 @@
 <?php
-
-use rrortega\sms\core\Model\Message;
-
 /**
  * Created by PhpStorm.
  * User: rrortega
+ * Profile: https://github.com/rrortega
  * Date: 30/12/17
  * Time: 21:22
  */
+
+use rrortega\sms\core\Model\Message;
+
+
 class MessageTest extends PHPUnit_Framework_TestCase
 {
 

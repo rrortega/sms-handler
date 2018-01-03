@@ -60,3 +60,7 @@ fabric.properties
 /vendor/
 /vendor/*
 /composer.lock
+/php7-fpm/
+/var
+/var/*
+docker-compose.yml

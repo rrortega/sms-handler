@@ -2,6 +2,7 @@
 /**
  * Created by PhpStorm.
  * User: rrortega
+ * Profile: https://github.com/rrortega
  * Date: 29/12/17
  * Time: 17:48
  */
@@ -18,27 +19,30 @@ class Configurable
     $this->config = $config;
   }
 
-  private function _getValueOf($key, $list = [])
+  private function _getValueOf($key, $list = [], $default = null)
   {
     if (array_key_exists($key, $list))
       return $list[$key];
 
     $spl = explode(".", $key);
 
-    if (!array_key_exists($spl[0], $list))
-      throw new \Exception(
-        sprintf("Configuration key [%s] not found", $spl[0])
-      );
+    if (!array_key_exists($spl[0], $list)) {
+      if (count($spl) > 1)
+        throw new \Exception(
+          sprintf("Configuration key [%s] not found", $spl[0])
+        );
+      return $default;
+    }
 
     $list = $list[array_shift($spl)];
     $key = implode(".", $spl);
-    return $this->_getValueOf($key, $list);
+    return $this->_getValueOf($key, $list, $default);
 
   }
 
-  public function getConfig($key)
+  public function getConfig($key, $default = null)
   {
-    return $this->_getValueOf($key, $this->config);
+    return $this->_getValueOf($key, $this->config,$default);
   }
 
   public function addConfig($key, $val)
