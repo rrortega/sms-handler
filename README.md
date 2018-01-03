@@ -9,15 +9,6 @@ Using composser
   composer require rrortega/sms-handler
 ``` 
 
-
- 
-
-Requires automaticaly install through composser: 
------
- 
- -  [php-smpp](https://github.com/onlinecity/php-smpp.git).
-
-
 Basic usage example
 -----
 

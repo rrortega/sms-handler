@@ -1,8 +1,8 @@
 {
   "name": "rrortega/sms-handler",
   "version": "0.1.0",
-  "type": "project",
-  "description": "Sms Gateway",
+  "type": "library",
+  "description": "Sms Handlers",
   "keywords": [
     "framework",
     "sms"
